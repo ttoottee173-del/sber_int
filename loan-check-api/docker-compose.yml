@@ -1,0 +1,52 @@
+services:
+  # ===== Сервис базы данных PostgreSQL =====
+  db:
+    image: postgres:16
+    container_name: loan_check_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-loan_check}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-loan_check_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-loan_check_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-loan_check} -d ${POSTGRES_DB:-loan_check_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # ===== Сервис приложения FastAPI =====
+  api:
+    build: .
+    container_name: loan_check_api
+    environment:
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8000
+      - APP_DEBUG=false
+      - POSTGRES_USER=${POSTGRES_USER:-loan_check}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-loan_check_pass}
+      - POSTGRES_DB=${POSTGRES_DB:-loan_check_db}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER:-loan_check}:${POSTGRES_PASSWORD:-loan_check_pass}@db:5432/${POSTGRES_DB:-loan_check_db}
+      - UPLOAD_DIR=/app/uploads
+      - MAX_FILE_SIZE_MB=20
+      - ALLOWED_EXTENSIONS=pdf,docx,jpg,jpeg,png
+    volumes:
+      - ./uploads:/app/uploads
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    # Сначала применяем миграции Alembic, затем запускаем uvicorn.
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
