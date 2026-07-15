@@ -189,9 +189,9 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 | `POSTGRES_USER` | `loan_check` | Пользователь PostgreSQL. |
 | `POSTGRES_PASSWORD` | `loan_check_pass` | Пароль PostgreSQL. |
 | `POSTGRES_DB` | `loan_check_db` | Имя базы данных. |
-| `POSTGRES_HOST` | `db` | Хост PostgreSQL (имя сервиса в docker-compose). |
+| `POSTGRES_HOST` | `localhost` | Хост PostgreSQL (имя сервиса в docker-compose). |
 | `POSTGRES_PORT` | `5432` | Порт PostgreSQL. |
-| `DATABASE_URL` | — | Полная строка подключения. **Если задана — имеет приоритет** над отдельными `POSTGRES_*`. |
+| `DATABASE_URL` | postgresql+psycopg2://loan_check:loan_check_pass@localhost:5432/loan_check_db | Полная строка подключения. **Если задана — имеет приоритет** над отдельными `POSTGRES_*`. |
 | `UPLOAD_DIR` | `/app/uploads` | Локальная папка для сохранения загруженных файлов. |
 | `MAX_FILE_SIZE_MB` | `20` | Максимальный размер файла в МБ (пункт 5 ТЗ). |
 | `ALLOWED_EXTENSIONS` | `pdf,docx,jpg,jpeg,png` | Разрешённые расширения через запятую (пункт 5 ТЗ). |
